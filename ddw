@@ -1,0 +1,96 @@
+#include <GL/glut.h>
+#include <cmath>
+#include <cstdlib>
+ 
+// Window size
+const int width = 800;
+const int height = 600;
+ 
+// Firework colors
+float colors[][3] = {
+    {1.0f, 0.0f, 0.0f}, // Red
+    {0.0f, 1.0f, 0.0f}, // Green
+    {0.0f, 0.0f, 1.0f}, // Blue
+    {1.0f, 1.0f, 0.0f}, // Yellow
+    {1.0f, 0.5f, 0.0f}  // Orange
+};
+ 
+// Firework attributes
+struct Firework {
+    float x, y;
+    float vx, vy;
+    float color[3];
+    bool active;
+} fireworks[100];
+ 
+// Initialize fireworks
+void initFireworks() {
+    for (int i = 0; i < 100; i++) {
+        fireworks[i].x = 0.0f;
+        fireworks[i].y = 0.0f;
+        fireworks[i].vx = (rand() % 200 - 100) / 500.0f;
+        fireworks[i].vy = (rand() % 200 - 100) / 500.0f;
+        int colorIdx = rand() % 5;
+        fireworks[i].color[0] = colors[colorIdx][0];
+        fireworks[i].color[1] = colors[colorIdx][1];
+        fireworks[i].color[2] = colors[colorIdx][2];
+        fireworks[i].active = true;
+    }
+}
+ 
+// Draw fireworks
+void drawFireworks() {
+    glPointSize(4.0);
+    glBegin(GL_POINTS);
+    for (int i = 0; i < 100; i++) {
+        if (fireworks[i].active) {
+            glColor3f(fireworks[i].color[0], fireworks[i].color[1], fireworks[i].color[2]);
+            glVertex2f(fireworks[i].x, fireworks[i].y);
+            fireworks[i].x += fireworks[i].vx;
+            fireworks[i].y += fireworks[i].vy;
+            fireworks[i].vy -= 0.0005f; // Gravity effect
+            if (fireworks[i].y < -1.0f) { // Reset if out of bounds
+                fireworks[i].x = 0.0f;
+                fireworks[i].y = 0.0f;
+                fireworks[i].vx = (rand() % 200 - 100) / 500.0f;
+                fireworks[i].vy = (rand() % 200 - 100) / 500.0f;
+                fireworks[i].active = true;
+            }
+        }
+    }
+    glEnd();
+}
+ 
+// Display function
+void display() {
+    glClear(GL_COLOR_BUFFER_BIT);
+    drawFireworks();
+    glutSwapBuffers();
+}
+ 
+// Timer function to update display
+void timer(int) {
+    glutPostRedisplay();
+    glutTimerFunc(16, timer, 0); // Approximately 60 FPS
+}
+ 
+// Initialize OpenGL settings
+void initGL() {
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Black background
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluOrtho2D(-1, 1, -1, 1);
+}
+ 
+int main(int argc, char** argv) {
+    glutInit(&argc, argv);
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
+    glutInitWindowSize(width, height);
+    glutCreateWindow("Diwali Fireworks Simulation");
+    initGL();
+    initFireworks();
+    glutDisplayFunc(display);
+    glutTimerFunc(0, timer, 0);
+    glutMainLoop();
+    return 0;
+}
